@@ -10,19 +10,22 @@ DataMiner::DataMiner()
 
 }
 
-void DataMiner::newData(const QFileInfo *fileInfo)
+void DataMiner::newData(const std::string &path, const long long &modTimeNs)
 {
-    processStream(fileInfo);
+    processStream(path, modTimeNs);
     emit(finished());
 }
+
 
 void DataMiner::processSystem()
 {
     // TODO
 }
-void DataMiner::processStream(const QFileInfo *fileInfo) {
+void DataMiner::processStream(const std::string &path, const long long &modTimeNs)
+{
     std::ifstream ifs;
-    ifs.open(fileInfo->absoluteFilePath().toStdString(), std::ios::in | std::ios::binary);
+
+    ifs.open(path, std::ios::in | std::ios::binary);
     if (!ifs.is_open())
     {
         std::cout << "Can't open input file" << std::endl;
@@ -38,7 +41,7 @@ void DataMiner::processStream(const QFileInfo *fileInfo) {
     }
     NewData newBlock;
     auto nd{newBlock.data()};
-    nd.time = fileInfo->lastModified().toMSecsSinceEpoch();
+    nd.time = modTimeNs;
     newBlock.setData(nd);
     ofs << newBlock;
     char buffer[1024];

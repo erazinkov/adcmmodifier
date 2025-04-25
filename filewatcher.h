@@ -2,22 +2,23 @@
 #define FILEWATCHER_H
 
 #include <QObject>
-#include <QFileSystemWatcher>
-#include <QFileInfo>
-#include <QThread>
+
+#include <sys/stat.h>
+#include <ctime>
 
 class FileWatcher : public QObject
 {
     Q_OBJECT
 public:
-    FileWatcher(const QString &path, QObject *parent = nullptr);
+    FileWatcher(const std::string &path, QObject *parent = nullptr);
 signals:
-    void onFileChanged(const QFileInfo *);
+    void onFileChanged(const std::string &, const long long &);
 public slots:
     void operate();
 private:
-    QString m_path;
-    QFileInfo *m_fileInfo;
+    std::string m_path;
+    struct stat m_stat;
+    long long m_modTimeNs;
 };
 
 #endif // FILEWATCHER_H

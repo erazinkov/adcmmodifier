@@ -2,19 +2,27 @@
 
 #include <QDebug>
 
-FileWatcher::FileWatcher(const QString &path, QObject *parent) : QObject(parent), m_path(path)
+#include <iostream>
+#include <filesystem>
+
+FileWatcher::FileWatcher(const std::string &path, QObject *parent) : QObject(parent), m_path(path)
 {
-    m_fileInfo = new QFileInfo(m_path);
+    stat(m_path.c_str(), &m_stat);
+    m_modTimeNs = m_stat.st_mtime;
+    m_modTimeNs *= 1'000'000'000;
+    m_modTimeNs += m_stat.st_mtim.tv_nsec;
 }
 
 void FileWatcher::operate()
 {
-    auto lastModified{m_fileInfo->lastModified()};
-    auto size{m_fileInfo->size()};
-    m_fileInfo->refresh();
-    if (lastModified != m_fileInfo->lastModified() && size != m_fileInfo->size())
-    {
-
-        emit(onFileChanged(m_fileInfo));
-    }
+   auto modTime{m_stat.st_mtime};
+   auto fileSize{m_stat.st_size};
+   stat(m_path.c_str(), &m_stat);
+   if (modTime != m_stat.st_mtime && fileSize != m_stat.st_size) {
+       m_modTimeNs = m_stat.st_mtime;
+       m_modTimeNs *= 1'000'000'000;
+       m_modTimeNs += m_stat.st_mtim.tv_nsec;
+       std::cout << m_modTimeNs << std::endl;
+       emit(onFileChanged(m_path.c_str(), m_modTimeNs));
+   }
 }

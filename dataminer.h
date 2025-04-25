@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QFileInfo>
 
+#include <sys/stat.h>
+
 class DataMiner : public QObject
 {
     Q_OBJECT
@@ -12,9 +14,9 @@ public:
 signals:
     void finished();
 public slots:
-    void newData(const QFileInfo *);
+    void newData(const std::string &, const long long &modTimeNs);
 private:
-    void processStream(const QFileInfo *);
+    void processStream(const std::string &path, const long long &modTimeNs);
     void processSystem();
 };
 

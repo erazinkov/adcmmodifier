@@ -168,6 +168,7 @@ std::vector<long> Decoder::positionsOfCMAPHeaders()
         }
         ifs_.seekg(1 - static_cast<long long>(sizeof(stor_packet_hdr_t)), std::ios_base::cur);
     }
+
     ifs_.close();
 
     return pos;

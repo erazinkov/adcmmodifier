@@ -16,6 +16,12 @@ void DataMiner::newData(const std::string &path, const long long &modTimeNs)
     emit(finished());
 }
 
+void DataMiner::newDataOffline(std::ifstream &ifs, std::ofstream &ofs, const long long &size, const long long &modTimeNs)
+{
+    processStreamOffline(ifs, ofs, size, modTimeNs);
+    emit(finished());
+}
+
 
 void DataMiner::processSystem()
 {
@@ -53,3 +59,22 @@ void DataMiner::processStream(const std::string &path, const long long &modTimeN
     ifs.close();
     ofs.close();
 }
+
+void DataMiner::processStreamOffline(
+        std::ifstream &ifs,
+        std::ofstream &ofs,
+        const long long &size,
+        const long long &modTimeNs
+        )
+{
+    NewData newBlock;
+    auto nd{newBlock.data()};
+    nd.time = modTimeNs;
+    newBlock.setData(nd);
+    ofs << newBlock;
+    std::vector<char> buffer;
+    buffer.resize(static_cast<ulong>(size));
+    ifs.read(&buffer[0], static_cast<long>(buffer.size()));
+    ofs.write(&buffer[0], static_cast<long>(buffer.size()));
+}
+

@@ -20,10 +20,8 @@
 void process();
 void processTest();
 
-long long int strToNs()
+long long int strToNs(const std::string &str, const std::string &strNs)
 {
-    std::string str{"2024-05-01 00:00:00"};
-    std::string strNs{"123456000"};
     std::tm tm = {};
     std::stringstream ss{str};
     ss >> std::get_time(&tm, "%Y-%m-%d  %H:%M:%S");
@@ -64,35 +62,53 @@ int main(int argc, char *argv[])
 void process()
 {
     const ChannelMap pre = ChannelMap::mapNAP();
-    const std::string fileName{"/home/egor/shares/tmp/sep18-15.13.38"};
-    Decoder decoder(fileName, pre);
-    auto pCMAP{decoder.positionsOfCMAPHeaders()};
-    auto size = std::filesystem::file_size(fileName);
-    pCMAP.push_back(static_cast<long>(size));
-    long long int modTimeNs{strToNs()};
+    const std::array<std::string, 4> fileNames{
+            "/home/egor/shares/tmp/tochka_1",
+            "/home/egor/shares/tmp/tochka_2",
+            "/home/egor/shares/tmp/tochka_3",
+            "/home/egor/shares/tmp/tochka_4",
+        };
+    const std::array<std::string, fileNames.size()> strs{
+        "2024-05-01 00:00:00",
+        "2024-05-01 00:37:00",
+        "2024-05-01 01:14:00",
+        "2024-05-01 01:51:00",
+        };
+    for (size_t i{0}; i < fileNames.size(); ++i) {
+        auto fileName{fileNames[i]};
+        Decoder decoder(fileName, pre);
+        auto pCMAP{decoder.positionsOfCMAPHeaders()};
+        auto size = std::filesystem::file_size(fileName);
+        pCMAP.push_back(static_cast<long>(size));
 
-    DataMiner dm;
-    std::ifstream ifs;
-    ifs.open(fileName, std::ios::in | std::ios::binary);
-    std::ofstream ofs;
-    ofs.open(fileName + ".mod", std::ios::out | std::ios::binary);
-    if (!ifs.is_open() || !ofs.is_open())
-    {
-        std::cout << "Can't open input || output file" << std::endl;
+        const std::string str{strs[i]};
+        const std::string strNs{"123456000"};
+
+        long long int modTimeNs{strToNs(str, strNs)};
+
+        DataMiner dm;
+        std::ifstream ifs;
+        ifs.open(fileName, std::ios::in | std::ios::binary);
+        std::ofstream ofs;
+        ofs.open(fileName + ".mod", std::ios::out | std::ios::binary);
+        if (!ifs.is_open() || !ofs.is_open())
+        {
+            std::cout << "Can't open input || output file" << std::endl;
+            ifs.close();
+            ofs.close();
+            return;
+        }
+
+        qInfo() << pCMAP.size();
+
+        for (size_t i{0}; i < pCMAP.size() - 1; ++i)
+        {
+            dm.newDataOffline(ifs, ofs, pCMAP.at(i + 1) - pCMAP.at(i), modTimeNs);
+            modTimeNs += 12'000'000'000;
+        }
         ifs.close();
         ofs.close();
-        return;
     }
-
-    qInfo() << pCMAP.size();
-
-    for (size_t i{0}; i < pCMAP.size() - 1; ++i)
-    {
-        dm.newDataOffline(ifs, ofs, pCMAP.at(i + 1) - pCMAP.at(i), modTimeNs);
-        modTimeNs += 10'000'000'000;
-    }
-    ifs.close();
-    ofs.close();
 }
 
 void processTest() {

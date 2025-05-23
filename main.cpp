@@ -18,7 +18,6 @@
 
 
 void process();
-void processTest();
 
 long long int strToNs(const std::string &str, const std::string &strNs)
 {
@@ -36,25 +35,33 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-//    {
-//        QTimer timer;
-//        auto ms{1'000};
-//        timer.setInterval(ms);
+        QTimer timer;
+        auto ms{1'000};
+        timer.setInterval(ms);
 //        const QString path = "/misc/agpf_nap/adcm.dat";
-//        //    const QString path = "/home/egor/build-adcmemulate-Desktop-Debug/adcm.dat";
-//        FileWatcher fileWatcher(path.toStdString());
+        const QString path = "/home/egor/build-adcmemulate-Desktop-Debug/adcm.dat";
+        FileWatcher fileWatcher(path.toStdString());
 
-//        DataMiner dm;
+        DataMiner dm("adcm.dat.acc");
 
-//        QObject::connect(&timer, &QTimer::timeout, &fileWatcher, &FileWatcher::operate);
-//        QObject::connect(&fileWatcher, &FileWatcher::onFileChanged, &dm, &DataMiner::newData);
-//        timer.start();
-//    }
-    QTimer::singleShot(0, [] ()
-    {
-        process();
-        QCoreApplication::exit(0);
-    });
+        QObject::connect(&timer, &QTimer::timeout, &fileWatcher, &FileWatcher::operate);
+        QObject::connect(&fileWatcher, &FileWatcher::onFileChanged, &dm, &DataMiner::newData);
+        timer.start();
+
+
+//    QTimer::singleShot(0, [] ()
+//    {
+//        process();
+//        QCoreApplication::exit(0);
+//    });
+
+//    QTimer::singleShot(0, [] ()
+//    {
+//        const QString path = "/home/egor/build-adcmemulate-Desktop-Debug/adcm.dat";
+//        DataMiner dm("adcm.dat.acc");
+//        dm.newData(path.toStdString(), 1714510802425498910);
+//        QCoreApplication::exit(0);
+//    });
 
     return a.exec();
 }
@@ -86,7 +93,7 @@ void process()
 
         long long int modTimeNs{strToNs(str, strNs)};
 
-        DataMiner dm;
+        DataMiner dm("");
         std::ifstream ifs;
         ifs.open(fileName, std::ios::in | std::ios::binary);
         std::ofstream ofs;
@@ -110,22 +117,3 @@ void process()
         ofs.close();
     }
 }
-
-void processTest() {
-
-    QString program = "ping";
-    QStringList arguments;
-    arguments << "10.90.90.4" << "-c" << "4";
-
-    QProcess *myProcess = new QProcess;
-
-    QObject::connect(myProcess, &QProcess::readyReadStandardOutput, [myProcess](){
-        auto ba = myProcess->readAllStandardOutput();
-        qInfo() << QString(ba);
-    });
-    myProcess->start(program, arguments);
-    myProcess->waitForFinished();
-    myProcess->close();
-
-}
-

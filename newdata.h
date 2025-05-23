@@ -20,6 +20,7 @@ public:
 
     void setData(const stor_nd_t &newData);
 
+    std::vector<uint8_t> bytes();
 private:
     stor_packet_hdr_t _hdr;
     stor_nd_t _data;

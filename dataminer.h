@@ -10,21 +10,26 @@ class DataMiner : public QObject
 {
     Q_OBJECT
 public:
-    DataMiner();
+    DataMiner(std::string outPath, std::string tempPath = "adcm.dat.tmp");
 signals:
     void finished();
 public slots:
-    void newData(const std::string &, const long long &modTimeNs);
-    void newDataOffline(std::ifstream &, std::ofstream &, const long long &, const long long &modTimeNs);
+    void newData(const std::string &, const long long &);
+    void newDataOffline(std::ifstream &, std::ofstream &, const long long &, const long long &);
 private:
-    void processStream(const std::string &path, const long long &modTimeNs);
+    std::string _outPath;
+    std::string _tempPath;
+
+    void processStream(const std::string &path, const long long &);
     void processStreamOffline(
-            std::ifstream &ifs,
-            std::ofstream &ofs,
-            const long long &size,
-            const long long &modTimeNs
+            std::ifstream &,
+            std::ofstream &,
+            const long long &,
+            const long long &
             );
-    void processSystem();
+    void processSystem(const std::string &, const long long &);
+    int exec(const std::string &) const;
+    std::string wrap(const std::string &) const;
 };
 
 #endif // DATAMINER_H

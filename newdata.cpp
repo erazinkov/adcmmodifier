@@ -35,3 +35,22 @@ std::ifstream &operator >> (std::ifstream &stream, NewData &d)
     stream >> d._hdr >> d._data;
     return stream;
 }
+
+std::vector<uint8_t> NewData::bytes()
+{
+    std::vector<uint8_t> bytes;
+
+    for (size_t i = 0; i < sizeof(_hdr.id); ++i)
+    {
+        bytes.push_back((_hdr.id >> (i * 8)) & 0xFF);
+    }
+    for (size_t i = 0; i < sizeof(_hdr.size); ++i)
+    {
+        bytes.push_back((_hdr.size >> (i * 8)) & 0xFF);
+    }
+    for (size_t i = 0; i < sizeof(_data.time); ++i)
+    {
+        bytes.push_back((_data.time >> (i * 8)) & 0xFF);
+    }
+    return bytes;
+}

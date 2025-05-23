@@ -7,7 +7,6 @@
 #include <vector>
 
 
-
 #define STOR_ID_CMAP  0x504D    /* 'MP' */
 #define STOR_ID_EVNT  0x5645    /* 'EV' */
 #define STOR_ID_CNTR  0x5443    /* 'CT' */

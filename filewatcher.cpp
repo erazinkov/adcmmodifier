@@ -1,6 +1,7 @@
 #include "filewatcher.h"
 
 #include <QDebug>
+#include <QTimer>
 
 #include <iostream>
 #include <filesystem>

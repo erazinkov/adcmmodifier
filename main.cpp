@@ -1,8 +1,8 @@
-#include <QCoreApplication>
+﻿#include <QCoreApplication>
 
 #include <QTimer>
-#include <QDebug>
 #include <QProcess>
+#include <QElapsedTimer>
 
 #include <fstream>
 #include <iostream>
@@ -35,33 +35,33 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-        QTimer timer;
-        auto ms{1'000};
-        timer.setInterval(ms);
-//        const QString path = "/misc/agpf_nap/adcm.dat";
-        const QString path = "/home/egor/build-adcmemulate-Desktop-Debug/adcm.dat";
-        FileWatcher fileWatcher(path.toStdString());
 
-        DataMiner dm("adcm.dat.acc");
-
-        QObject::connect(&timer, &QTimer::timeout, &fileWatcher, &FileWatcher::operate);
-        QObject::connect(&fileWatcher, &FileWatcher::onFileChanged, &dm, &DataMiner::newData);
-        timer.start();
+    QTimer watcherTimer;
+    auto watcherIntervalMs{1'000};
+    watcherTimer.setInterval(watcherIntervalMs);
+    QElapsedTimer elapsedTimer;
+    auto elapsedIntervalMs{15'000};
+//    const QString path = "/misc/agpf_nap/adcm.dat";
+    const QString path = "/home/egor/build-adcmemulate-Desktop-Debug/adcm.dat";
+    FileWatcher fileWatcher(path.toStdString());
+    DataMiner dataMiner("adcm.dat.acc");
 
 
-//    QTimer::singleShot(0, [] ()
-//    {
-//        process();
-//        QCoreApplication::exit(0);
-//    });
+    QObject::connect(&watcherTimer, &QTimer::timeout, [&](){
+        if (!elapsedTimer.hasExpired(elapsedIntervalMs)) {
+            qInfo() << "Elapsed time" << elapsedTimer.elapsed() << "ms";
+            return;
+        }
+        watcherTimer.stop();
+        QCoreApplication::quit();
+    });
+    QObject::connect(&watcherTimer, &QTimer::timeout, &fileWatcher, &FileWatcher::operate);
+    QObject::connect(&fileWatcher, &FileWatcher::onFileChanged, &watcherTimer, &QTimer::stop);
+    QObject::connect(&fileWatcher, &FileWatcher::onFileChanged, &dataMiner, &DataMiner::newData);
+    QObject::connect(&dataMiner, &DataMiner::finished, &watcherTimer, [&](){watcherTimer.start();});
 
-//    QTimer::singleShot(0, [] ()
-//    {
-//        const QString path = "/home/egor/build-adcmemulate-Desktop-Debug/adcm.dat";
-//        DataMiner dm("adcm.dat.acc");
-//        dm.newData(path.toStdString(), 1714510802425498910);
-//        QCoreApplication::exit(0);
-//    });
+    watcherTimer.start();
+    elapsedTimer.start();
 
     return a.exec();
 }

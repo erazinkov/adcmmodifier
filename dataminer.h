@@ -29,7 +29,6 @@ private:
             );
     void processSystem(const std::string &, const long long &);
     int exec(const std::string &) const;
-    std::string wrap(const std::string &) const;
 };
 
 #endif // DATAMINER_H

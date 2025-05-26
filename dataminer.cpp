@@ -15,7 +15,7 @@ void DataMiner::newData(const std::string &path, const long long &modTimeNs)
 {
     std::string str;
     str.append("cp ").append(path).append(" ").append(_tempPath);
-    auto r{exec(wrap(str))};
+    auto r{exec(str)};
     if (r != 0 )
     {
         std::cout << "Can\'t create temporary copy " << _tempPath << " of " << path;
@@ -26,7 +26,7 @@ void DataMiner::newData(const std::string &path, const long long &modTimeNs)
     processSystem(_tempPath, modTimeNs);
     str.clear();
     str.append("rm ").append(_tempPath);
-    r = exec(wrap(str));
+    r = exec(str);
     if (r != 0 )
     {
         std::cout << "Can\'t remove temporary copy " << _tempPath << " of " << path;
@@ -42,17 +42,11 @@ void DataMiner::newDataOffline(std::ifstream &ifs, std::ofstream &ofs, const lon
 
 int DataMiner::exec(const std::string &command) const
 {   
-    const int exitCode = system(command.c_str());
+    std::string wC{"$(which bash) -c \'"};
+    wC.append(command);
+    wC.append("\'");
+    const int exitCode = system(wC.c_str());
     return exitCode;
-}
-
-std::string DataMiner::wrap(const std::string &command) const
-{
-    std::string wCommand;
-    wCommand.append("$(which bash) -c \'");
-    wCommand.append(command);
-    wCommand.append("\'");
-    return wCommand;
 }
 
 std::vector<std::byte> getByteArray(const std::string& str)
@@ -88,7 +82,7 @@ void DataMiner::processSystem(const std::string &path, const long long &modTimeN
         str.append(ss.str());
     }
     str.append(" > ").append(_outPath);
-    auto r{exec(wrap(str))};
+    auto r{exec(str)};
     if (r != 0)
     {
         std::cout << "Can\'t modify output file " << _outPath;
@@ -96,7 +90,7 @@ void DataMiner::processSystem(const std::string &path, const long long &modTimeN
     }
     str.clear();
     str.append("cat ").append(path).append(" >> ").append(_outPath);
-    r = exec(wrap(str));
+    r = exec(str);
     if (r != 0)
     {
         std::cout << "Can\'t concatenate intput file " << path << " to output file " << _outPath;

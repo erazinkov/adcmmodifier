@@ -69,6 +69,7 @@ void DataMiner::processSystem(const std::string &path, const long long &modTimeN
 
     std::vector<uint8_t> bytes{newBlock.bytes()};
 
+    auto r{-2};
     std::stringstream ss;
     ss.str("");ss.clear();
 
@@ -81,8 +82,8 @@ void DataMiner::processSystem(const std::string &path, const long long &modTimeN
         ss << std::hex << static_cast<int>(byte);
         str.append(ss.str());
     }
-    str.append(" > ").append(_outPath);
-    auto r{exec(str)};
+    str.append(" >> ").append(_outPath);
+    r = exec(str);
     if (r != 0)
     {
         std::cout << "Can\'t modify output file " << _outPath;
@@ -90,10 +91,11 @@ void DataMiner::processSystem(const std::string &path, const long long &modTimeN
     }
     str.clear();
     str.append("cat ").append(path).append(" >> ").append(_outPath);
+    std::cout << str;
     r = exec(str);
     if (r != 0)
     {
-        std::cout << "Can\'t concatenate intput file " << path << " to output file " << _outPath;
+        std::cout << "Can\'t concatenate input file " << path << " to output file " << _outPath;
         // TODO
         return;
     }

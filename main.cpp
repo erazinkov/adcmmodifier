@@ -3,6 +3,7 @@
 #include <QTimer>
 #include <QProcess>
 #include <QElapsedTimer>
+#include <QCommandLineParser>
 
 #include <fstream>
 #include <iostream>
@@ -15,9 +16,12 @@
 #include "decoder.h"
 #include "dataminer.h"
 
-
+#include "mapperparser.h"
+#include "mapperquery.h"
 
 void process();
+
+void process(const MapperQuery &query);
 
 long long int strToNs(const std::string &str, const std::string &strNs)
 {
@@ -36,16 +40,65 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
 
 
+    QCommandLineParser parser;
+    MapperQuery query;
+    MapperParser mapperParser(parser, query);
+    auto parseResult = mapperParser.parseResult();
+
+    if (parseResult)
+    {
+        a.quit();
+    }
+
+
+    FileWatcher fileWatcher(query.input.toStdString());
+    DataMiner dataMiner(query.output.toStdString());
+
     QTimer watcherTimer;
-    auto watcherIntervalMs{1'000};
+    const auto watcherIntervalMs{1'000};
     watcherTimer.setInterval(watcherIntervalMs);
     QElapsedTimer elapsedTimer;
-    auto elapsedIntervalMs{15'000};
-//    const QString path = "/misc/agpf_nap/adcm.dat";
-    const QString path = "/home/egor/build-adcmemulate-Desktop-Debug/adcm.dat";
-    FileWatcher fileWatcher(path.toStdString());
-    DataMiner dataMiner("adcm.dat.acc");
+    const auto elapsedIntervalMs{query.time * 60 * 1'000};
 
+    QTextStream ss;
+
+    QObject::connect(&watcherTimer, &QTimer::timeout, [&](){
+        if (!elapsedTimer.hasExpired(elapsedIntervalMs))
+        {
+            qInfo() << "Elapsed time" << 0.001 * static_cast<double>(elapsedTimer.elapsed()) << "s";
+            return;
+        }
+        watcherTimer.stop();
+        a.quit();
+    });
+    QObject::connect(&watcherTimer, &QTimer::timeout, &fileWatcher, &FileWatcher::operate);
+    QObject::connect(&fileWatcher, &FileWatcher::onFileChanged, &watcherTimer, &QTimer::stop);
+    QObject::connect(&fileWatcher, &FileWatcher::onFileChanged, &dataMiner, &DataMiner::newData);
+    QObject::connect(&dataMiner, &DataMiner::finished, &watcherTimer, [&](){
+        QFileInfo inputInfo{query.input};
+        qInfo() << "Input size: " << inputInfo.size() << "bytes";
+        watcherTimer.start();
+    });
+
+    watcherTimer.start();
+    elapsedTimer.start();
+
+    return a.exec();
+}
+
+void process(const MapperQuery &query)
+{
+
+//    const QString path = "/misc/agpf_nap/adcm.dat";
+//    const QString path = "/home/egor/build-adcmemulate-Desktop-Debug/adcm.dat";
+    FileWatcher fileWatcher(query.input.toStdString());
+    DataMiner dataMiner(query.output.toStdString());
+
+    QTimer watcherTimer;
+    const auto watcherIntervalMs{1'000};
+    watcherTimer.setInterval(watcherIntervalMs);
+    QElapsedTimer elapsedTimer;
+    const auto elapsedIntervalMs{query.time * 1'000};
 
     QObject::connect(&watcherTimer, &QTimer::timeout, [&](){
         if (!elapsedTimer.hasExpired(elapsedIntervalMs)) {
@@ -62,8 +115,6 @@ int main(int argc, char *argv[])
 
     watcherTimer.start();
     elapsedTimer.start();
-
-    return a.exec();
 }
 
 void process()

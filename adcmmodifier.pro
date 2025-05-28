@@ -15,6 +15,7 @@ SOURCES += \
         decoder.cpp \
         filewatcher.cpp \
         main.cpp \
+        mapperparser.cpp \
         newdata.cpp
 
 # Default rules for deployment.
@@ -28,4 +29,6 @@ HEADERS += \
     dataminer.h \
     decoder.h \
     filewatcher.h \
+    mapperparser.h \
+    mapperquery.h \
     newdata.h

@@ -23,7 +23,6 @@ void FileWatcher::operate()
        m_modTimeNs = m_stat.st_mtime;
        m_modTimeNs *= 1'000'000'000;
        m_modTimeNs += m_stat.st_mtim.tv_nsec;
-       std::cout << m_modTimeNs << std::endl;
        emit(onFileChanged(m_path.c_str(), m_modTimeNs));
    }
 }

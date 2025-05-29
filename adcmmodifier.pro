@@ -10,12 +10,11 @@ CONFIG -= app_bundle
 
 
 SOURCES += \
-        channelmap.cpp \
         dataminer.cpp \
-        decoder.cpp \
         filewatcher.cpp \
         main.cpp \
         mapperparser.cpp \
+        myprocess.cpp \
         newdata.cpp
 
 # Default rules for deployment.
@@ -24,11 +23,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    adcm_df.h \
-    channelmap.h \
     dataminer.h \
-    decoder.h \
     filewatcher.h \
     mapperparser.h \
     mapperquery.h \
+    myprocess.h \
     newdata.h

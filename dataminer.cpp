@@ -1,43 +1,35 @@
 #include "dataminer.h"
 
 #include <fstream>
-#include <iostream>
+#include <sstream>
 
 #include "newdata.h"
 
-DataMiner::DataMiner(std::string outPath, std::string tempPath)
-    : _outPath(outPath), _tempPath(tempPath)
+DataMiner::DataMiner(std::string inputPath, std::string outPath, std::string tempPath)
+    : inputPath_(inputPath), outPath_(outPath), tempPath_(tempPath)
 {
-
 }
 
-void DataMiner::newData(const std::string &path, const long long &modTimeNs)
+void DataMiner::process(const long long &modTimeNs) const
 {
     std::string str;
-    str.append("cp ").append(path).append(" ").append(_tempPath);
+    str.append("cp ").append(inputPath_).append(" ").append(tempPath_);
     auto r{exec(str)};
     if (r != 0 )
     {
-        std::cout << "Can\'t create temporary copy " << _tempPath << " of " << path;
+        std::cout << "Can\'t create temporary copy " << tempPath_ << " of " << inputPath_;
         return;
     }
 
-//    processStream(_tempPath, modTimeNs);
-    processSystem(_tempPath, modTimeNs);
-    str.clear();
-    str.append("rm ").append(_tempPath);
-    r = exec(str);
-    if (r != 0 )
-    {
-        std::cout << "Can\'t remove temporary copy " << _tempPath << " of " << path;
-    }
-    emit(finished());
-}
-
-void DataMiner::newDataOffline(std::ifstream &ifs, std::ofstream &ofs, const long long &size, const long long &modTimeNs)
-{
-    processStreamOffline(ifs, ofs, size, modTimeNs);
-    emit(finished());
+//    processStream(modTimeNs);
+    processSystem(modTimeNs);
+//    str.clear();
+//    str.append("rm ").append(tempPath_);
+//    r = exec(str);
+//    if (r != 0 )
+//    {
+//        std::cout << "Can\'t remove temporary copy " << tempPath_ << " of " << inputPath_;
+//    }
 }
 
 int DataMiner::exec(const std::string &command) const
@@ -60,7 +52,7 @@ std::vector<std::byte> getByteArray(const std::string& str)
     return buffer;
 }
 
-void DataMiner::processSystem(const std::string &path, const long long &modTimeNs)
+void DataMiner::processSystem(const long long &modTimeNs) const
 {   
     NewData newBlock;
     auto nd{newBlock.data()};
@@ -82,29 +74,28 @@ void DataMiner::processSystem(const std::string &path, const long long &modTimeN
         ss << std::hex << static_cast<int>(byte);
         str.append(ss.str());
     }
-    str.append(" >> ").append(_outPath);
+    str.append(" >> ").append(outPath_);
     r = exec(str);
     if (r != 0)
     {
-        std::cout << "Can\'t modify output file " << _outPath;
+        std::cout << "Can\'t modify output file " << outPath_;
         return;
     }
     str.clear();
-    str.append("cat ").append(path).append(" >> ").append(_outPath);
-    std::cout << str;
+    str.append("cat ").append(tempPath_).append(" >> ").append(outPath_);
     r = exec(str);
     if (r != 0)
     {
-        std::cout << "Can\'t concatenate input file " << path << " to output file " << _outPath;
+        std::cout << "Can\'t concatenate input file " << tempPath_ << " to output file " << outPath_;
         // TODO
         return;
     }
 }
-void DataMiner::processStream(const std::string &path, const long long &modTimeNs)
+void DataMiner::processStream(const long long &modTimeNs) const
 {
     std::ifstream ifs;
 
-    ifs.open(path, std::ios::in | std::ios::binary);
+    ifs.open(tempPath_, std::ios::in | std::ios::binary);
     if (!ifs.is_open())
     {
         std::cout << "Can't open input file" << std::endl;
@@ -112,7 +103,7 @@ void DataMiner::processStream(const std::string &path, const long long &modTimeN
     }
 
     std::ofstream ofs;
-    ofs.open(_outPath, std::ios::out | std::ios::binary | std::ios::app);
+    ofs.open(outPath_, std::ios::out | std::ios::binary | std::ios::app);
     if (!ofs.is_open())
     {
         std::cout << "Can't open output file" << std::endl;
@@ -131,23 +122,5 @@ void DataMiner::processStream(const std::string &path, const long long &modTimeN
     ofs.write(buffer, ifs.gcount());
     ifs.close();
     ofs.close();
-}
-
-void DataMiner::processStreamOffline(
-        std::ifstream &ifs,
-        std::ofstream &ofs,
-        const long long &size,
-        const long long &modTimeNs
-        )
-{
-    NewData newBlock;
-    auto nd{newBlock.data()};
-    nd.time = modTimeNs;
-    newBlock.setData(nd);
-    ofs << newBlock;
-    std::vector<char> buffer;
-    buffer.resize(static_cast<ulong>(size));
-    ifs.read(&buffer[0], static_cast<long>(buffer.size()));
-    ofs.write(&buffer[0], static_cast<long>(buffer.size()));
 }
 

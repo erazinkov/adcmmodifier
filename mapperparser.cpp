@@ -46,7 +46,7 @@ MapperParser::CommandLineParseResult MapperParser::parseCommandLine()
 
     parser_.addPositionalArgument("input", "Path to input data file ('adcm.dat').");
     parser_.addPositionalArgument("output", "Path to output data file.");
-    parser_.addPositionalArgument("time", "Time to accumulate data in min.");
+    parser_.addPositionalArgument("time", "Time in min to accumulate data (>= 1).");
     const QCommandLineOption helpOption = parser_.addHelpOption();
     const QCommandLineOption versionOption = parser_.addVersionOption();
 
@@ -71,15 +71,15 @@ MapperParser::CommandLineParseResult MapperParser::parseCommandLine()
     const QStringList positionalArguments = parser_.positionalArguments();
     if (positionalArguments.isEmpty() || positionalArguments.size() < 3 || positionalArguments.size() > 3)
     {
-        return { Status::Error, "Three arguments are required." };
+        return { Status::Error, "'input', 'output', 'time' arguments are required." };
     }
     query_.input = positionalArguments.at(0);
     query_.output = positionalArguments.at(1);
     bool ok;
     query_.time = positionalArguments.at(2).toInt(&ok);
-    if (query_.time < 0 || !ok)
+    if (query_.time < 1 || !ok)
     {
-        return { Status::Error, QString("Incorrect 'time' parameter: %1").arg(query_.a) };
+        return { Status::Error, QString("Incorrect 'time' argument: %1").arg(query_.time) };
     }
     return { Status::Ok };
 }

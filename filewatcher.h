@@ -1,22 +1,19 @@
 #ifndef FILEWATCHER_H
 #define FILEWATCHER_H
 
-#include <QObject>
-
 #include <sys/stat.h>
 #include <ctime>
+#include <iomanip>
 
-class FileWatcher : public QObject
+class FileWatcher
 {
-    Q_OBJECT
 public:
-    FileWatcher(const std::string &path, QObject *parent = nullptr);
-signals:
-    void onFileChanged(const std::string &, const long long &);
-public slots:
-    void operate();
+    FileWatcher(const std::string &);
+    bool process();
+    long long modTimeNs() const;
+
 private:
-    std::string m_path;
+    const std::string m_path;
     struct stat m_stat;
     long long m_modTimeNs;
 };

@@ -1,33 +1,22 @@
 #ifndef DATAMINER_H
 #define DATAMINER_H
 
-#include <QObject>
-#include <QFileInfo>
-
 #include <sys/stat.h>
+#include <iostream>
 
-class DataMiner : public QObject
+class DataMiner
 {
-    Q_OBJECT
 public:
-    DataMiner(std::string outPath, std::string tempPath = "adcm.dat.tmp");
-signals:
-    void finished();
-public slots:
-    void newData(const std::string &, const long long &);
-    void newDataOffline(std::ifstream &, std::ofstream &, const long long &, const long long &);
+    DataMiner(std::string inputPath, std::string outPath, std::string tempPath = "adcm.dat.tmp");
+public:
+    void process(const long long &) const;
 private:
-    std::string _outPath;
-    std::string _tempPath;
+    std::string inputPath_;
+    std::string outPath_;
+    std::string tempPath_;
 
-    void processStream(const std::string &path, const long long &);
-    void processStreamOffline(
-            std::ifstream &,
-            std::ofstream &,
-            const long long &,
-            const long long &
-            );
-    void processSystem(const std::string &, const long long &);
+    void processStream(const long long &) const;
+    void processSystem(const long long &) const;
     int exec(const std::string &) const;
 };
 

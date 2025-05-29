@@ -12,6 +12,8 @@ public:
     bool process();
     long long modTimeNs() const;
 
+    static bool checkPath(const std::string &path);
+
 private:
     const std::string m_path;
     struct stat m_stat;

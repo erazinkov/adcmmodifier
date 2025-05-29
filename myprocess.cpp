@@ -8,7 +8,6 @@ MyProcess::MyProcess(const QString &inputPath, const QString &outputPath, QObjec
     m_fileWatcher = new FileWatcher(inputPath.toStdString());
     m_dataMiner = new DataMiner(inputPath.toStdString(), outputPath.toStdString());
     connect(&m_timer, &QTimer::timeout, this, &MyProcess::onTimeout);
-
     m_timer.start(1'000);
 }
 

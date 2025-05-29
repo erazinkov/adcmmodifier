@@ -5,14 +5,18 @@
 #include <ctime>
 #include <iomanip>
 
+enum class ProcessStatus {
+    MODIFY,
+    ERROR,
+    WAIT,
+};
+
 class FileWatcher
 {
 public:
     FileWatcher(const std::string &);
-    bool process();
+    ProcessStatus process();
     long long modTimeNs() const;
-
-    static bool checkPath(const std::string &path);
 
 private:
     const std::string m_path;

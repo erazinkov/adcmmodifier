@@ -14,7 +14,7 @@ FileWatcher::FileWatcher(const std::string &path) : m_path(path)
     m_modTimeNs += m_stat.st_mtim.tv_nsec;
 }
 
-bool FileWatcher::process()
+ProcessStatus FileWatcher::process()
 {
    auto prevModTime{m_stat.st_mtime};
    auto prevFileSize{m_stat.st_size};
@@ -24,10 +24,11 @@ bool FileWatcher::process()
            m_modTimeNs = m_stat.st_mtime;
            m_modTimeNs *= 1'000'000'000;
            m_modTimeNs += m_stat.st_mtim.tv_nsec;
-           return true;
+           return ProcessStatus::MODIFY;
        }
+       return ProcessStatus::WAIT;
    }
-   return false;
+   return ProcessStatus::ERROR;
 }
 
 long long FileWatcher::modTimeNs() const
@@ -35,12 +36,3 @@ long long FileWatcher::modTimeNs() const
     return m_modTimeNs;
 }
 
-bool FileWatcher::checkPath(const std::string &path)
-{
-    struct stat checkStat;
-    if (stat(path.c_str(), &checkStat) != 0)
-    {
-        return false;
-    }
-    return true;
-}

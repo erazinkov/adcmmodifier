@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <ctime>
 #include <iomanip>
+#include <optional>
 
 enum class ProcessStatus {
     MODIFY,
@@ -15,8 +16,19 @@ class FileWatcher
 {
 public:
     FileWatcher(const std::string &);
-    ProcessStatus process();
+    struct ProcessResult {
+        enum class Status {
+            Ok,
+            Error,
+            Wait
+        };
+        Status statusCode{Status::Error};
+        std::optional<std::string> errorString{std::nullopt};
+    };
+    ProcessResult process();
     long long modTimeNs() const;
+
+
 
 private:
     const std::string m_path;

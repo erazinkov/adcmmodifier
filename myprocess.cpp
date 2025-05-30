@@ -21,16 +21,18 @@ MyProcess::~MyProcess()
 
 void MyProcess::onTimeout()
 {
-    switch (m_fileWatcher->process())
+    using Status = FileWatcher::ProcessResult::Status;
+    auto processResult{m_fileWatcher->process()};
+    switch (processResult.statusCode)
     {
-        case ProcessStatus::MODIFY:
+        case Status::Ok:
             m_dataMiner->process(m_fileWatcher->modTimeNs());
             qInfo() << "Data is taken";
             break;
-        case ProcessStatus::WAIT:
+        case Status::Wait:
             break;
-        case ProcessStatus::ERROR:
-            qInfo() << "Adcm input file error";
+        case Status::Error:
+            qInfo() << "Error input file: " << processResult.errorString.value_or("Unknown").c_str();
             break;
     }
 }

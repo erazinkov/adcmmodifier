@@ -23,14 +23,14 @@ void MyProcess::onTimeout()
 {
     switch (m_fileWatcher->process())
     {
-    case ProcessStatus::MODIFY:
-        m_dataMiner->process(m_fileWatcher->modTimeNs());
-        qInfo() << "Data is taken";
-        break;
-    case ProcessStatus::WAIT:
-        break;
-    case ProcessStatus::ERROR:
-        qInfo() << "Adcm input file error";
-        break;
+        case ProcessStatus::MODIFY:
+            m_dataMiner->process(m_fileWatcher->modTimeNs());
+            qInfo() << "Data is taken";
+            break;
+        case ProcessStatus::WAIT:
+            break;
+        case ProcessStatus::ERROR:
+            qInfo() << "Adcm input file error";
+            break;
     }
 }
